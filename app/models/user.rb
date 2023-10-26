@@ -115,7 +115,14 @@ class User < ApplicationRecord
   def following?(other_user)
     following.include?(other_user)
   end
-  
+
+  # 初回ログイン時に通知
+  def first_login_notification
+    notifications.create(notification_type: 'first_login',
+                         message: '初回ログインありがとうございます',
+                         follower_id: id)
+  end
+
   private
 
   # メールアドレスを全て小文字にする
