@@ -6,7 +6,7 @@ class Notification < ApplicationRecord
     self.user_id = user.id
     self.follower_id = follower.id
     self.notification_type = 'follow'
-    self.message = 'フォローされました'
+    self.message = "#{follower.name}さんにフォローされました"
     save!
   end
 
