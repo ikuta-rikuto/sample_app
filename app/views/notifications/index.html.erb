@@ -1,5 +1,9 @@
 <h1>Notifications</h1>
 
+<% @grouped_notifications_messages.each do |message| %>
+  <p><%= message %></p>
+<% end %>
+
 <% @notifications.each do |notification| %>
   <p><%= notification.message %></p>
 <% end %>
