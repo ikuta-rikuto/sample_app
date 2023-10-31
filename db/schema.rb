@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_25_153753) do
+ActiveRecord::Schema[7.0].define(version: 2023_10_31_065636) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -59,12 +59,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_25_153753) do
 
   create_table "notifications", force: :cascade do |t|
     t.integer "user_id", null: false
-    t.integer "follower_id", null: false
     t.string "notification_type"
     t.text "message"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["follower_id"], name: "index_notifications_on_follower_id"
+    t.integer "relationship_id"
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
@@ -100,5 +99,4 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_25_153753) do
   add_foreign_key "followers", "users", column: "follower_id"
   add_foreign_key "microposts", "users"
   add_foreign_key "notifications", "users"
-  add_foreign_key "notifications", "users", column: "follower_id"
 end

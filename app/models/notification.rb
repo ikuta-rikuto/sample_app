@@ -1,14 +1,15 @@
 class Notification < ApplicationRecord
   belongs_to :user
-  belongs_to :follower, class_name: 'User', foreign_key: 'follower_id', optional: true
+  belongs_to :relationship, optional: true
 
   puts "初回ログイン"
 
-  def create_follow_notification(user, follower)
+  def create_follow_notification(user, relationship)
     self.user_id = user.id
-    self.follower_id = follower.id
+    self.relationship_id = relationship.id
     self.notification_type = 'follow'
-    self.message = "#{follower.name}さんにフォローされました"
+    follower_user = User.find(relationship.follower_id)
+    self.message = "#{follower_user.name}さんにフォローされました"
     save!
   end
 

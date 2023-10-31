@@ -120,8 +120,7 @@ class User < ApplicationRecord
   # 初回ログイン時に通知
   def first_login_notification
     notifications.create(notification_type: 'first_login',
-                         message: '初回ログインありがとうございます',
-                         follower_id: id)
+                         message: '初回ログインありがとうございます')
   end
 
   private
