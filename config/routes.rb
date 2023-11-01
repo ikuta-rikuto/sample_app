@@ -11,7 +11,11 @@ Rails.application.routes.draw do
     member do
       get :following, :followers
     end
-    resources :notifications, only: [:index]
+    resources :notifications, only: [:index, :update] do
+      member do
+        patch :mark_as_read
+      end
+    end
   end
   resources :account_activations, only: [:edit]
   resources :password_resets, only: [:new, :create, :edit, :update]

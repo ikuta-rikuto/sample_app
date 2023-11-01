@@ -307,3 +307,12 @@ span.image {
     border: 0;
   }
 }
+
+.notification_container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.edit_notification {
+  width: 100px
+}

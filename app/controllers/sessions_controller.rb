@@ -5,22 +5,22 @@ class SessionsController < ApplicationController
     user = User.find_by(email: params[:session][:email].downcase)
     if user && user.authenticate(params[:session][:password])
       # 一時的にコメントアウト
-      # if user.activated?
-      #   forwarding_url = session[:forwarding_url]
-      #   reset_session
-      #   params[:session][:remember_me] == '1' ? remember(user) : forget(user)
-      #   log_in user
-      #   redirect_to forwarding_url || user
-      # else
-      #   message  = "Account not activated. "
-      #   message += "Check your email for the activation link."
-      #   flash[:warning] = message
-      #   redirect_to root_url
-      # end
+      if user.activated?
+        forwarding_url = session[:forwarding_url]
+        reset_session
+        params[:session][:remember_me] == '1' ? remember(user) : forget(user)
+        log_in user
+        redirect_to forwarding_url || user
+      else
+        message  = "Account not activated. "
+        message += "Check your email for the activation link."
+        flash[:warning] = message
+        redirect_to root_url
+      end
 
       # 一時的に追加
-      log_in user
-      redirect_to user
+      # log_in user
+      # redirect_to user
     else
       flash.now[:danger] = 'Invalid email/password combination'
       render 'new', status: :unprocessable_entity

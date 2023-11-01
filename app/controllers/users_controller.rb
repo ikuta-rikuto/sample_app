@@ -20,9 +20,9 @@ class UsersController < ApplicationController
     @user = User.new(user_params)
     if @user.save
       # 一時的にコメントアウト
-      # @user.send_activation_email
-      # flash[:info] = "Please check your email to activate your account."
-      # redirect_to root_url
+      @user.send_activation_email
+      flash[:info] = "Please check your email to activate your account."
+      redirect_to root_url
       @user.first_login_notification
     else
       render 'new', status: :unprocessable_entity
