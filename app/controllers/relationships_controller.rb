@@ -11,7 +11,6 @@ class RelationshipsController < ApplicationController
     notification = Notification.new
     notification.create_follow_notification(@user, relationship)
 
-
     respond_to do |format|
       format.html { redirect_to @user }
       format.turbo_stream

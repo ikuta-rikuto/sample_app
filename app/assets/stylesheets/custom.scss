@@ -311,8 +311,15 @@ span.image {
 .notification_container {
   display: flex;
   justify-content: space-between;
+  border-top: 1px solid #e8e8e8;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.notification_container p {
+  padding-top: 15px;
 }
 
 .edit_notification {
-  width: 100px
+  width: 100px;
+  padding-top: 15px;
 }
