@@ -1,0 +1,12 @@
+<h1>Notifications</h1>
+
+<% @grouped_notifications_messages.each do |message, notification| %>
+  <% unless notification.read %>
+    <div class="notification_container">
+      <p><%= message %></p>
+      <%= form_for(notification, url: mark_as_read_user_notification_path(@user, notification), method: :patch) do |f| %>
+        <%= f.submit '既読にする' %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
