@@ -5,6 +5,7 @@ class Notification < ApplicationRecord
   # 1時間あたりの秒数
   SECONDS_IN_HOUR = 3600
 
+  # save!のように破壊的なメソッドを含む場合、そのメソッド名もcreate_follow_notification!にすると良いです！
   def create_follow_notification(user, relationship)
     self.user_id = user.id
     self.relationship_id = relationship.id
@@ -14,6 +15,9 @@ class Notification < ApplicationRecord
     save!
   end
 
+  # クラスメソッドはインスタンスメソッドより上に書くことが多いです！
+  # 複雑で一見何をしているかわからないので、メソッドに分割すると良さそうです。意識としては、1メソッドで1つの仕事しかしない、です
+  # notificationが多い場合、毎回この処理をすることになりますがパフォーマンス的に問題なさそうでしょうか？
   def self.grouped_notifications(user)
     notifications = user.notifications.order(created_at: :desc)
 

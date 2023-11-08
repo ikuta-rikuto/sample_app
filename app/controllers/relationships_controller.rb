@@ -8,6 +8,7 @@ class RelationshipsController < ApplicationController
 
     # 通知を作成する
     relationship = current_user.active_relationships.find_by(followed_id: @user.id)
+    # railsでcreateという名前は new + save の意味合いがあるので、create_follow_notification内にNotification.newを含めましょう！
     notification = Notification.new
     notification.create_follow_notification(@user, relationship)
 
