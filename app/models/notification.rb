@@ -5,7 +5,7 @@ class Notification < ApplicationRecord
   # 1時間あたりの秒数
   SECONDS_IN_HOUR = 3600
 
-  def create_follow_notification(user, relationship)
+  def create_follow_notification!(user, relationship)
     self.user_id = user.id
     self.relationship_id = relationship.id
     self.notification_type = 'follow'

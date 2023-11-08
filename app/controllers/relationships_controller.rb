@@ -9,7 +9,7 @@ class RelationshipsController < ApplicationController
     # 通知を作成する
     relationship = current_user.active_relationships.find_by(followed_id: @user.id)
     notification = Notification.new
-    notification.create_follow_notification(@user, relationship)
+    notification.create_follow_notification!(@user, relationship)
 
     respond_to do |format|
       format.html { redirect_to @user }
