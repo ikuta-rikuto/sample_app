@@ -5,13 +5,14 @@ class Notification < ApplicationRecord
   # 1時間あたりの秒数
   SECONDS_IN_HOUR = 3600
 
-  def create_follow_notification!(user, relationship)
-    self.user_id = user.id
-    self.relationship_id = relationship.id
-    self.notification_type = 'follow'
+  def self.create_follow_notification!(user, relationship)
+    notification = self.new
+    notification.user_id = user.id
+    notification.relationship_id = relationship.id
+    notification.notification_type = 'follow'
     follower_user = User.find(relationship.follower_id)
-    self.message = "#{follower_user.name}さんにフォローされました"
-    save!
+    notification.message = "#{follower_user.name}さんにフォローされました"
+    notification.save!
   end
 
   def self.grouped_notifications(user)
