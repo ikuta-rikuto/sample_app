@@ -10,7 +10,7 @@ class Notification < ApplicationRecord
     notification.user_id = user.id
     notification.relationship_id = relationship.id
     notification.notification_type = 'follow'
-    follower_user = User.find(relationship.follower_id)
+    follower_user = relationship.follower
     notification.message = "#{follower_user.name}さんにフォローされました"
     notification.save!
   end
@@ -42,7 +42,7 @@ class Notification < ApplicationRecord
   def self.divide_group_notifications_time(follow_notifications)
     grouped_notifications_time = []
     follow_notifications.each do |notification|
-      if grouped_notifications_time.empty? || (grouped_notifications_time.last.first.created_at - notification.created_at) > 1.hours
+      if grouped_notifications_time.empty? || (grouped_notifications_time.last.first.created_at - notification.created_at) > SECONDS_IN_HOUR
         grouped_notifications_time << [notification]
       else
         grouped_notifications_time.last << notification
