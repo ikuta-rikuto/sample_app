@@ -16,60 +16,64 @@ class Notification < ApplicationRecord
   end
 
   def self.grouped_notifications(user)
-    notifications = user.notifications.order(created_at: :desc)
+    # 未読の通知のみ取得
+    notifications = user.notifications.where(read: false).order(created_at: :desc)
 
+    follow_notifications, first_login_notifications = divide_group_notifications_type(notifications)
+    grouped_notifications_time = divide_group_notifications_time(follow_notifications)
+    grouped_follow_notifications = generate_group_message(grouped_notifications_time)
+
+    # 全てタイプの通知をマージする
     grouped_notifications = []
-    notifications.each do |notification|
-      # ①grouped_notificationsが空であるか、②新しい通知と最後のグループ内の最初の通知との時間差が2時間以上であるかどうか、③新しい通知の種類が最後のグループ内の最初の通知種類と違うかをチェックする
-      # 1つでも条件に当てはまれば、新しい通知グループを作成し通知を格納する。当てはまらない場合は既存の同じグループの配列の最後に値を格納する
-      if grouped_notifications.empty? || (grouped_notifications.last.first.created_at - notification.created_at) > 1.hours || grouped_notifications.last.first.notification_type != notification.notification_type
-        # 1件目の通知をgrouped_notificationsに挿入
-        grouped_notifications << [notification]
+    grouped_notifications += first_login_notifications.map { |n| [n.message, n] }
+    grouped_notifications += grouped_follow_notifications
+
+    grouped_notifications.sort_by { |message, notification| -notification.created_at.to_i }
+  end
+
+  # 通知タイプごとに分けるメソッド
+  def self.divide_group_notifications_type(notifications)
+    follow_notifications = notifications.select { |n| n.notification_type == 'follow'}
+    first_login_notifications = notifications.select { |n| n.notification_type == 'first_login'}
+    [follow_notifications, first_login_notifications]
+  end
+
+  # 通知を1時間ごとにグループ化する
+  def self.divide_group_notifications_time(follow_notifications)
+    grouped_notifications_time = []
+    follow_notifications.each do |notification|
+      if grouped_notifications_time.empty? || (grouped_notifications_time.last.first.created_at - notification.created_at) > 1.hours
+        grouped_notifications_time << [notification]
       else
-        # 2件目以降の通知をgrouped_notificationsに挿入
-        grouped_notifications.last << notification
+        grouped_notifications_time.last << notification
       end
-      puts grouped_notifications
-      puts grouped_notifications.size
     end
+    grouped_notifications_time
+  end
 
-    grouped_notifications_messages = grouped_notifications.map do |group|
-      message = if group.first.notification_type == 'follow'
-        # フォロー解除された時に、nilになりフォロワーの名前が表示されないため、.compactを使用
-        names = group.map { |n| n.relationship&.follower&.name }.compact
-        # 現在の時間から最初の通知を引いた時間を計算
-        hours_ago = ((Time.now - group.first.created_at) / SECONDS_IN_HOUR).round
-        puts hours_ago
-        if names.size > 1
-          if hours_ago < 1
-            "#{names.first}さん他#{names.size - 1}名にフォローされました"
-          elsif hours_ago > 24
-            "#{hours_ago / 24 }日前に#{names.first}さん他#{names.size - 1}名にフォローされました"
-          else
-            "#{hours_ago}時間前に#{names.first}さん他#{names.size - 1}名にフォローされました"
-          end
-        else
-          if hours_ago < 1
-            "#{names.first}さんにフォローされました"
-          elsif hours_ago > 24
-            "#{hours_ago / 24 }日前に#{names.first}さんにフォローされました"
-          else
-            "#{hours_ago}時間前に#{names.first}さんにフォローされました"
-          end
-        end
-      elsif group.first.notification_type == 'first_login'
-        group.first.message
+  # 通知の数と時間によって通知メッセージを変更
+  def self.generate_group_message(grouped_notifications_time)
+    grouped_notifications_time.map do |group|
+      follower_name = User.find(group.first.relationship.follower_id).name
+
+      # 何時間前にフォローされたか調べる
+      hours_ago = ((Time.now - group.first.created_at) / SECONDS_IN_HOUR).round
+      time = case hours_ago
+      when 0
+        ""
+      when 1..24
+        "#{hours_ago}時間前に"
+      else
+        "#{hours_ago / 24}日前に"
       end
 
-      puts "テスト"
-      puts [message, group.first]
-      [message, group.first]
-      # 未読の通知のみを残す
-      end.reject { |message, notification| notification.read }
+      followers = group.size > 1 ? "#{follower_name}さん他#{group.size - 1}名" : "#{follower_name}さん"
+      group_message = "#{time}#{followers}にフォローされました"
 
-    puts "テスト1"
-    puts grouped_notifications_messages
-    grouped_notifications_messages
+      group.each { |notification| notification.message = group_message }
+      group.first.message = group_message
+      [group.first.message, group.first]
+    end
   end
 
 end
