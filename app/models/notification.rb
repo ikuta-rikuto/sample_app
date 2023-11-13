@@ -2,14 +2,11 @@ class Notification < ApplicationRecord
   belongs_to :user
   belongs_to :relationship, optional: true
 
-  # 1時間あたりの秒数
-  SECONDS_IN_HOUR = 3600
+  # 通知をまとめる時間
+  NOTIFICATION_GROUPING_TIME = 3600
 
   # 通知の種類
-  NOTIFICATION_TYPES = {
-    follow: ['follow'],
-    first_login: ['first_login']
-  }
+  NOTIFICATION_TYPES = ['follow', 'first_login']
 
   def self.create_follow_notification!(user, relationship)
     notification = self.new
@@ -33,8 +30,8 @@ class Notification < ApplicationRecord
   # 通知タイプごとに分けてそれぞれのメソッドを実行
   def self.divide_group_notifications_type(notifications)
     grouped_notifications = []
-    NOTIFICATION_TYPES.each do |type, values|
-      type_notifications = notifications.select { |n| values.include?(n.notification_type) }
+    NOTIFICATION_TYPES.each do |type|
+      type_notifications = notifications.select { |n| type.include?(n.notification_type) }
       # 各通知メソッドを実行
       grouped_notifications += send("group_#{type}_notifications", type_notifications)
     end
@@ -51,10 +48,10 @@ class Notification < ApplicationRecord
   end
 
   # 各タイプの通知を1時間ごとにグループ化する
-  def self.divide_group_notifications_time(notification_each_type)
+  def self.divide_group_notifications_time(notification)
     grouped_notifications_time = []
-    notification_each_type.each do |notification|
-      if grouped_notifications_time.empty? || (grouped_notifications_time.last.first.created_at - notification.created_at) > SECONDS_IN_HOUR
+    notification.each do |notification|
+      if grouped_notifications_time.empty? || (grouped_notifications_time.last.first.created_at - notification.created_at) > NOTIFICATION_GROUPING_TIME
         grouped_notifications_time << [notification]
       else
         grouped_notifications_time.last << notification
@@ -69,7 +66,7 @@ class Notification < ApplicationRecord
       follower_name = User.find(group.first.relationship.follower_id).name
 
       # 何時間前にフォローされたか調べる
-      hours_ago = ((Time.now - group.first.created_at) / SECONDS_IN_HOUR).round
+      hours_ago = ((Time.now - group.first.created_at) / NOTIFICATION_GROUPING_TIME).round
       time = case hours_ago
       when 0
         ""
