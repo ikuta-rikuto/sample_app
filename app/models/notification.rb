@@ -5,6 +5,12 @@ class Notification < ApplicationRecord
   # 1時間あたりの秒数
   SECONDS_IN_HOUR = 3600
 
+  # 通知の種類
+  NOTIFICATION_TYPES = {
+    follow: ['follow'],
+    first_login: ['first_login']
+  }
+
   def self.create_follow_notification!(user, relationship)
     notification = self.new
     notification.user_id = user.id
@@ -19,29 +25,35 @@ class Notification < ApplicationRecord
     # 未読の通知のみ取得
     notifications = user.notifications.where(read: false).order(created_at: :desc)
 
-    follow_notifications, first_login_notifications = divide_group_notifications_type(notifications)
-    grouped_notifications_time = divide_group_notifications_time(follow_notifications)
-    grouped_follow_notifications = generate_group_message(grouped_notifications_time)
-
-    # 全てタイプの通知をマージする
-    grouped_notifications = []
-    grouped_notifications += first_login_notifications.map { |n| [n.message, n] }
-    grouped_notifications += grouped_follow_notifications
+    grouped_notifications = divide_group_notifications_type(notifications)
 
     grouped_notifications.sort_by { |message, notification| -notification.created_at.to_i }
   end
 
-  # 通知タイプごとに分けるメソッド
+  # 通知タイプごとに分けてそれぞれのメソッドを実行
   def self.divide_group_notifications_type(notifications)
-    follow_notifications = notifications.select { |n| n.notification_type == 'follow'}
-    first_login_notifications = notifications.select { |n| n.notification_type == 'first_login'}
-    [follow_notifications, first_login_notifications]
+    grouped_notifications = []
+    NOTIFICATION_TYPES.each do |type, values|
+      type_notifications = notifications.select { |n| values.include?(n.notification_type) }
+      # 各通知メソッドを実行
+      grouped_notifications += send("group_#{type}_notifications", type_notifications)
+    end
+    grouped_notifications
   end
 
-  # 通知を1時間ごとにグループ化する
-  def self.divide_group_notifications_time(follow_notifications)
+  def self.group_first_login_notifications(first_login_notifications)
+    first_login_notifications.map { |n| [n.message, n] }
+  end
+
+  def self.group_follow_notifications(follow_notifications)
+    grouped_notifications_time = divide_group_notifications_time(follow_notifications)
+    generate_group_message(grouped_notifications_time)
+  end
+
+  # 各タイプの通知を1時間ごとにグループ化する
+  def self.divide_group_notifications_time(notification_each_type)
     grouped_notifications_time = []
-    follow_notifications.each do |notification|
+    notification_each_type.each do |notification|
       if grouped_notifications_time.empty? || (grouped_notifications_time.last.first.created_at - notification.created_at) > SECONDS_IN_HOUR
         grouped_notifications_time << [notification]
       else
@@ -75,5 +87,4 @@ class Notification < ApplicationRecord
       [group.first.message, group.first]
     end
   end
-
 end
