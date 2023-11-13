@@ -48,9 +48,9 @@ class Notification < ApplicationRecord
   end
 
   # 各タイプの通知を1時間ごとにグループ化する
-  def self.divide_group_notifications_time(notification)
+  def self.divide_group_notifications_time(notifications)
     grouped_notifications_time = []
-    notification.each do |notification|
+    notifications.each do |notification|
       if grouped_notifications_time.empty? || (grouped_notifications_time.last.first.created_at - notification.created_at) > NOTIFICATION_GROUPING_TIME
         grouped_notifications_time << [notification]
       else
