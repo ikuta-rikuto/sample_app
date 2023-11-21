@@ -7,12 +7,16 @@ class NotificationsController < ApplicationController
   end
 
   def mark_as_read
-    @notification = Notification.find(params[:id])
-    if @notification.update(read: true)
-      redirect_to user_notifications_path(user_id: @notification.user_id), notice: '通知を既読にしました'
-    else
-      redirect_to user_notifications_path(user_id: @notification.user_id), alert: '既読にすることができませんでした'
+    @user = User.find(params[:user_id])
+    grouped_notifications = Notification.grouped_notifications(@user)
+    grouped_notifications.each do |message, notification, notification_time|
+      if notification.id == params[:id].to_i
+        notification_time.each do |notification|
+          notification.each { |notification_read| notification_read.update(read: true) }
+        end
+      end
     end
+    redirect_to user_notifications_path(user_id: @user.id), notice: '通知を既読にしました'
   end
 
   private
