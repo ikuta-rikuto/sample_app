@@ -10,7 +10,7 @@ class Notification < ApplicationRecord
 
   def self.create_follow_notification!(user, relationship)
     notification = self.new
-    notification.user_id = user.id
+    notification.user = user
     notification.relationship_id = relationship.id
     notification.notification_type = 'follow'
     follower_user = relationship.follower
@@ -23,6 +23,13 @@ class Notification < ApplicationRecord
     notifications = user.notifications.where(read: false).order(created_at: :desc)
 
     grouped_notifications = divide_group_notifications_type(notifications)
+
+    puts "grouped_notifications:"
+    grouped_notifications.each do |group|
+      puts "Message: #{group[0]}"
+      puts "Notification: #{group[1].inspect}"
+      puts "Notification_Time: #{group[2].inspect}"
+    end
 
     grouped_notifications.sort_by { |message, notification| -notification.created_at.to_i }
   end
@@ -57,6 +64,8 @@ class Notification < ApplicationRecord
         grouped_notifications_time.last << notification
       end
     end
+    grouped_notifications_time.each do |notification|
+    end
     grouped_notifications_time
   end
 
@@ -79,9 +88,8 @@ class Notification < ApplicationRecord
       followers = group.size > 1 ? "#{follower_name}さん他#{group.size - 1}名" : "#{follower_name}さん"
       group_message = "#{time}#{followers}にフォローされました"
 
-      group.each { |notification| notification.message = group_message }
       group.first.message = group_message
-      [group.first.message, group.first]
+      [group.first.message, group.first, grouped_notifications_time]
     end
   end
 end
