@@ -92,4 +92,10 @@ class Notification < ApplicationRecord
       [group.first.message, group.first, grouped_notifications_time]
     end
   end
+
+  # アンフォローされた時に通知を非表示にする
+  def self.hide_follow_notification!(user, relationship)
+    notification = user.notifications.find_by(relationship_id: relationship.id, notification_type: 'follow', read: false)
+    notification&.update(read: true)
+  end
 end

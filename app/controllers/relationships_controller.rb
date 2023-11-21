@@ -17,7 +17,12 @@ class RelationshipsController < ApplicationController
   end
 
   def destroy
-    @user = Relationship.find(params[:id]).followed
+    @relationship = Relationship.find(params[:id])
+    @user = @relationship.followed
+
+    # アンフォロー通知を非表示にする
+    Notification.hide_follow_notification!(@user, @relationship)
+
     current_user.unfollow(@user)
     respond_to do |format|
       format.html { redirect_to @user, status: :see_other }
